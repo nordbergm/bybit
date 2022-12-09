@@ -309,6 +309,26 @@ func TestLinearExecutionList(t *testing.T) {
 	})
 }
 
+func TestLinearClosedPnLList(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		client := bybit.NewTestClient().WithAuthFromEnv()
+		res, err := client.Future().USDTPerpetual().LinearClosedPnLList(bybit.LinearClosedPnLListParam{
+			Symbol: bybit.SymbolFutureBTCUSDT,
+		})
+		require.NoError(t, err)
+		{
+			goldenFilename := "./testdata/private-linear-trade-closed-pnl-list.json"
+			testhelper.Compare(t, goldenFilename, testhelper.ConvertToJSON(res.Result))
+			testhelper.UpdateFile(t, goldenFilename, testhelper.ConvertToJSON(res.Result))
+		}
+	})
+	t.Run("auth error", func(t *testing.T) {
+		client := bybit.NewTestClient()
+		_, err := client.Future().USDTPerpetual().LinearExecutionList(bybit.LinearExecutionListParam{})
+		require.Error(t, err)
+	})
+}
+
 func TestLinearCancelAllOrder(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		client := bybit.NewTestClient().WithAuthFromEnv()

@@ -35,6 +35,7 @@ type FutureUSDTPerpetualServiceI interface {
 	SaveLinearLeverage(SaveLinearLeverageParam) (*SaveLinearLeverageResponse, error)
 	LinearTradingStop(LinearTradingStopParam) (*LinearTradingStopResponse, error)
 	LinearExecutionList(LinearExecutionListParam) (*LinearExecutionListResponse, error)
+	LinearClosedPnLList(param LinearClosedPnLListParam) (*LinearClosedPnLListResponse, error)
 
 	// Wallet Data Endpoints
 	Balance(Coin) (*BalanceResponse, error)
@@ -459,6 +460,67 @@ func (s *FutureUSDTPerpetualService) LinearExecutionList(param LinearExecutionLi
 	}
 
 	if err := s.client.getPrivately("/private/linear/trade/execution/list", queryString, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// LinearClosedPnLListResponse :
+type LinearClosedPnLListResponse struct {
+	CommonResponse `json:",inline"`
+	Result         LinearClosedPnLListResult `json:"result"`
+}
+
+// LinearClosedPnLListResult :
+type LinearClosedPnLListResult struct {
+	CurrentPage          int                   `json:"current_page"`
+	LinearClosedPnLLists []LinearClosedPnLList `json:"data"`
+}
+
+// LinearClosedPnLList :
+type LinearClosedPnLList struct {
+	ID            uint         `json:"id"`
+	UserID        uint         `json:"user_id"`
+	Symbol        SymbolFuture `json:"symbol"`
+	OrderID       string       `json:"order_id"`
+	Side          Side         `json:"side"`
+	Qty           float64      `json:"qty"`
+	OrderPrice    float64      `json:"order_price"`
+	OrderType     OrderType    `json:"order_type"`
+	ExecType      ExecType     `json:"exec_type"`
+	ClosedSize    float64      `json:"closed_size"`
+	CumEntryValue float64      `json:"cum_entry_value"`
+	AvgEntryPrice float64      `json:"avg_entry_price"`
+	CumExitValue  float64      `json:"cum_exit_value"`
+	AvgExitPrice  float64      `json:"avg_exit_price"`
+	ClosedPnl     float64      `json:"closed_pnl"`
+	FillCount     float64      `json:"fill_count"`
+	Leverage      float64      `json:"leverage"`
+	CreatedAt     float64      `json:"created_at"`
+}
+
+// LinearClosedPnLListParam :
+type LinearClosedPnLListParam struct {
+	Symbol SymbolFuture `url:"symbol"`
+
+	StartTime *int      `url:"start_time,omitempty"`
+	EndTime   *int      `url:"end_time,omitempty"`
+	ExecType  *ExecType `url:"exec_type,omitempty"`
+	Page      *int      `url:"page,omitempty"`
+	Limit     *int      `url:"limit,omitempty"`
+}
+
+// LinearClosedPnLList :
+func (s *FutureUSDTPerpetualService) LinearClosedPnLList(param LinearClosedPnLListParam) (*LinearClosedPnLListResponse, error) {
+	var res LinearClosedPnLListResponse
+
+	queryString, err := query.Values(param)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.client.getPrivately("/private/linear/trade/closed-pnl/list", queryString, &res); err != nil {
 		return nil, err
 	}
 
